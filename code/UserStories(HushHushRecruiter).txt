@@ -32,7 +32,7 @@ HR Requirements:
  
 User Story as System Administrator: 
 
-As a System Administrator I want the system to automatically onboard candidates and store their data securely in the backend so that I can ensure the system remains scalable and compliant with data privacy regulations. 
+As a System Administrator, I want an environment where candidate will appear for exam and store their data securely in the backend so that I can ensure the system remains scalable and compliant with data privacy regulations. 
  
 
 
@@ -74,7 +74,7 @@ Pain Points:
  
 Candidate Requirements: 
 
-1.	I want to receive my login credentials and access to the platform so I can attempt my exam.
+1.	I want to receive my login credentials and access to the platform so that I can attempt my exam.
 2.	I want to ensure that private data is handled responsibly and never misused.
  
 

@@ -1,0 +1,80 @@
+User Story as Project Manager: 
+
+1.	As a Project Manager, I want to hire skilled technical candidates for my projects, so that I can quickly fill roles to avoid missing project deadlines. 
+2.	As a Project manager, I want to review the codes written by the candidate, so that I can hire the best fit for the project.  
+  
+Pain Points:  
+
+1.	Inconsistent quality of candidates 
+2.	Difficulty in sourcing niche technical skills 
+  
+Project Manager Requirements: 
+
+1.	I want to define the required skill set, experience, role in a project and system must identify candidates through the automated recruitment process. 
+2.	I or a person assigned by me should be able to review the submitted coding challenge. 
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ 
+User Story as HR: 
+
+As an HR Manager, I want an automated Hiring workflow through HushHush Recruiter (our in-house hiring platform), so that I can ensure the recruitment process runs without depending on hiring agencies and complies with company hiring policies. 
+  
+Pain Points:  
+
+1.	Too many manual steps in hiring. 
+2.	Delays due to dependency on third-party agencies. 
+  
+HR Requirements:  
+
+1.	The software should be able to find best fit candidate.  
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ 
+User Story as System Administrator: 
+
+As a System Administrator I want the system to automatically onboard candidates and store their data securely in the backend so that I can ensure the system remains scalable and compliant with data privacy regulations. 
+ 
+
+
+Pain Points:  
+
+1.	No existing 3rd party agencies complies with candidate privacy 
+2.	No unified space where hiring managers can view submissions and provide feedback
+ 
+System Administrator Requirements: 
+
+1.	I want candidates to have login and coding interface 
+2.	I want to provide specific permission to specific individual.
+3.	I want candidate's coding exam link to automatically expire after a specific time window to ensure time-bound access. 
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+User Story as Legal Head: 
+
+ As the Legal Head, I want to ensure the compliance of global privacy laws and ethical standard in HushHush Recruiter System, so that the company avoids legal risks.  
+
+Pain Points:  
+
+1.	Risk of violating data privacy regulations (e.g., GDPR (General Data Protection Regulation), GPC (Global Privacy Control), EDPB (European Data Protection Board))
+ 
+Legal Head Requirements: 
+
+1.	I want to ensure candidates are notified about their data usage and take their consent wherever required. 
+2.	I want to decide how long candidate data is stored as per company's guideline and ensure it is not misused. 
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+User Story as Candidate: 
+
+As a candidate, I should be notified about my selection so that I would be able to attempt the coding exam.   
+ 
+Pain Points: 
+
+1.	There have been data privacy issues with recruiting agency, such as data being sold to third party companies. 
+ 
+Candidate Requirements: 
+
+1.	I want to receive my login credentials and access to the platform so I can attempt my exam.
+2.	I want to ensure that private data is handled responsibly and never misused.
+ 
+

@@ -3,5 +3,4 @@ a good github repo always tries to document the functionality of the project in 
 -   a brief description of the project (3-4 lines)
 -   all technical pre-requisites needed to compile and run the code
 -   if one wishes to contribute to the code , then how to create a local dev environment and contribution guidelines.
-
-User Stories Canva Link -- https://www.canva.com/design/DAGp3vMWNQA/YXpHDKzXftOKgKYGx0GLuw/view?utm_content=DAGp3vMWNQA&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h71e71f8c31 
+ 

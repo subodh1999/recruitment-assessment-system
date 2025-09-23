@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to My Web App</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/favicon.ico' %}"/>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 50px 60px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 2.5em;
+        }
+        p {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        .button-group a {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.0em;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin: 0 10px;
+        }
+        .button-group a:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+        }
+        .button-group a.secondary {
+            background-color: #e74c3c; /* Logout button color */
+        }
+        .button-group a.secondary:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if user.is_authenticated %}
+            <h1>Welcome, {{ user.username|capfirst }}! </h1>
+            <p>You are logged in and ready to go!</p>
+            <div class="button-group">
+                <a href="{% url 'dashboard_redirect' %}">Go to Dashboard</a>
+                <a href="{% url 'logout' %}" class="secondary">Logout</a>
+            </div>
+        {% else %}
+            <h1>Welcome to HushHush ! </h1>
+            <p>Please log in to access your task.</p>
+            <div class="button-group">
+                <a href="{% url 'login' %}">Login Here</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

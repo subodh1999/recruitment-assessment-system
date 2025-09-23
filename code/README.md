@@ -1,4 +1,3 @@
-
 ############################################## DATA FETCHING [API] ###############################################
 # GitHub User Profiler
 
@@ -264,3 +263,4 @@ For issues and questions:
     - it also stores selected candidate in a new "candidate" table.
 
     
+

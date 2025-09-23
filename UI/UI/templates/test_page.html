@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Test - Question</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/favicon.ico' %}"/>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .header {
+            width: 100%;
+            background-color: #ffffff;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        .test-container {
+            width: 80%;
+            max-width: 900px;
+            margin-top: 40px;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+        .test-question {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+        .test-editor {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-family: monospace;
+            padding: 10px;
+            resize: vertical;
+        }
+        .output-console {
+            background-color: #2c3e50;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 20px;
+        }
+        .output-console pre {
+            margin: 0;
+        }
+        .nav-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .nav-buttons button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .nav-buttons button:hover {
+            background-color: #2980b9;
+        }
+        .nav-buttons button.submit-button {
+            background-color: #2e7d32;
+        }
+        .nav-buttons button.submit-button:hover {
+            background-color: #1b5e20;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Coding Test</h1>
+    </div>
+    <div class="test-container">
+        <div class="test-question">
+            <p>Hello, {{ user.username }}!</p>
+            <p><strong>Question {{ current_question_index|add:1 }}:</strong> {{ question_text }}</p>
+            <p><strong>Test Case:</strong></p>
+            <pre>{{ test_case_text }}</pre>
+        </div>
+        <textarea id="code-editor" class="test-editor" placeholder="Write your code here..."></textarea>
+        <div class="output-console" id="output-console">
+            <pre>Console output will appear here...</pre>
+        </div>
+        <div class="nav-buttons">
+            {% if current_question_index > 0 %}
+                <button id="prev-button">Previous Question</button>
+            {% else %}
+                <div></div>
+            {% endif %}
+            <div>
+                <button id="run-button">Run Code</button>
+                {% if current_question_index < 2 %}
+                    <button id="next-button">Next Question</button>
+                {% else %}
+                    <button id="submit-button" class="submit-button">Submit Test</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store data for the current question
+        let currentQuestionData = {
+            code: '',
+            output: '',
+            status: '',
+        };
+
+        window.onload = function() {
+            const dataKey = 'q' + ({{ current_question_index|add:1 }}) + '_data';
+            const savedData = sessionStorage.getItem(dataKey);
+            if (savedData) {
+                currentQuestionData = JSON.parse(savedData);
+                document.getElementById('code-editor').value = currentQuestionData.code;
+                document.getElementById('output-console').innerHTML = `<pre>Status: ${currentQuestionData.status}\nOutput: ${currentQuestionData.output}</pre>`;
+            }
+        };
+
+        document.getElementById('run-button').addEventListener('click', async () => {
+            const code = document.getElementById('code-editor').value;
+            const outputConsole = document.getElementById('output-console');
+
+            outputConsole.innerHTML = '<pre>Running code...</pre>';
+
+            try {
+                const response = await fetch('{% url "execute_code" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ code: code, question_number: {{ question_number }} })
+                });
+                const data = await response.json();
+                
+                currentQuestionData.code = code;
+                currentQuestionData.output = data.output;
+                currentQuestionData.status = data.status;
+
+                outputConsole.innerHTML = `<pre>Status: ${data.status}\nOutput: ${data.output}</pre>`;
+            } catch (error) {
+                outputConsole.innerHTML = `<pre>Error: Could not connect to the server.</pre>`;
+            }
+        });
+
+        // Event listener for the "Next" button
+        const nextButton = document.getElementById('next-button');
+        if (nextButton) {
+            nextButton.addEventListener('click', () => {
+                const dataKey = 'q' + ({{ current_question_index|add:1 }}) + '_data';
+                sessionStorage.setItem(dataKey, JSON.stringify(currentQuestionData));
+                window.location.href = '{% url "test_page" question_index=current_question_index|add:1 %}';
+            });
+        }
+        
+        // Event listener for the "Previous" button
+        const prevButton = document.getElementById('prev-button');
+        if (prevButton) {
+            prevButton.addEventListener('click', () => {
+                const dataKey = 'q' + ({{ current_question_index|add:1 }}) + '_data';
+                sessionStorage.setItem(dataKey, JSON.stringify(currentQuestionData));
+                
+                // Use a conditional to only generate the URL when it's valid
+                {% if current_question_index > 0 %}
+                    window.location.href = '{% url "test_page" question_index=current_question_index|add:-1 %}';
+                {% endif %}
+            });
+        }
+
+        // Event listener for the "Submit" button
+        const submitButton = document.getElementById('submit-button');
+        if (submitButton) {
+            submitButton.addEventListener('click', async () => {
+                const dataKey = 'q' + ({{ current_question_index|add:1 }}) + '_data';
+                sessionStorage.setItem(dataKey, JSON.stringify(currentQuestionData));
+                
+                const q1_data = JSON.parse(sessionStorage.getItem('q1_data') || '{}');
+                const q2_data = JSON.parse(sessionStorage.getItem('q2_data') || '{}');
+                const q3_data = JSON.parse(sessionStorage.getItem('q3_data') || '{}');
+
+                const submissionData = {
+                    q1: q1_data,
+                    q2: q2_data,
+                    q3: q3_data,
+                };
+                
+                try {
+                    const response = await fetch('{% url "submit_test" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify(submissionData)
+                    });
+
+                    if (response.ok) {
+                        alert('Test submitted successfully! Redirecting you now.');
+                        sessionStorage.clear();
+                        window.location.href = '{% url "submission_success" %}';
+                    } else {
+                        alert('Failed to submit the test. Please try again.');
+                    }
+                } catch (error) {
+                    alert('An error occurred during submission.');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

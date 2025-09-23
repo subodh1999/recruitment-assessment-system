@@ -1,0 +1,348 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Dashboard</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/favicon.ico' %}"/>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            display: flex;
+            flex-direction: row; /* Main layout is horizontal */
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #ffffff;
+            color: #333;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar h2 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .sidebar a {
+            color: #555;
+            text-decoration: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .sidebar a:hover {
+            background-color: #e3f2fd;
+        }
+        .sidebar a.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .main-content {
+            flex-grow: 1; /* Takes up the rest of the space */
+            padding: 40px;
+            overflow-y: auto; /* Allows scrolling if content is too long */
+        }
+        .main-content h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .candidate-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .candidate-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: calc(33.333% - 20px);
+            box-sizing: border-box;
+            transition: transform 0.2s ease;
+        }
+        .candidate-card:hover {
+            transform: translateY(-5px);
+        }
+        .candidate-card h3 {
+            color: #3498db;
+            margin-top: 0;
+        }
+        .candidate-card p {
+            color: #7f8c8d;
+            margin: 5px 0;
+        }
+        .logout-container {
+            margin-top: auto; /* Pushes the logout button to the bottom */
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+        }
+        .logout-container form {
+            display: inline;
+        }
+        .logout-container button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .logout-container button:hover {
+            background-color: #c0392b;
+        }
+        .email-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+        .email-button:hover {
+            background-color: #218838;
+        }
+        .send-all-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-bottom: 20px;
+        }
+        .send-all-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>HR Dashboard</h2>
+        <a href="#" onclick="showTab('selected-candidates', this)" id="selected-tab" class="active">Selected Candidates</a>
+        <a href="#" onclick="showTab('final-candidates', this)" id="final-tab">Final Candidates</a>
+        <a href="#" onclick="showTab('rejected-candidates', this)" id="rejected-tab">Rejected Candidates</a>
+        <div class="logout-container">
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div id="selected-candidates" class="tab-content active">
+            <h1>Selected Candidates</h1>
+            <button class="send-all-button" onclick="sendEmailToAll()">Send Exam Link to All</button>
+            <div id="email-feedback-selected" style="display:none; padding:15px; margin-bottom:20px; border-radius:8px;"></div>
+            <div class="candidate-list">
+                {% for candidate in all_candidates_from_candidate_table %}
+                    <div class="candidate-card" data-email="{{ candidate.email }}" data-password="{{ candidate.password }}">
+                        <h3>{{ candidate.email }}</h3>
+                        <p>ID: {{ candidate.id }}</p>
+                        <p>Password: {{ candidate.password }}</p>
+                        <button onclick="sendExamEmail(this, '{{ candidate.email }}', '{{ candidate.password }}')" style="background-color:#007bff; color:white; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-weight:bold;">Send Exam Link</button>
+                    </div>
+                {% empty %}
+                    <p>No candidates found in the database.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="final-candidates" class="tab-content">
+            <h1>Final Candidates</h1>
+            <div id="email-feedback-final" style="display:none; padding:15px; margin-bottom:20px; background-color:#d4edda; color:#155724; border:1px solid #c3e6cb; border-radius:8px;"></div>
+            <div class="candidate-list">
+                {% for candidate in final_candidates %}
+                    <div class="candidate-card">
+                        <h3>{{ candidate.candidate_email }}</h3>
+                        <p>Status: {{ candidate.status }}</p>
+                        <button class="email-button" onclick="sendOfferEmail(this, '{{ candidate.candidate_email }}')">Send Offer Email</button>
+                    </div>
+                {% empty %}
+                    <p>No final candidates found.</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div id="rejected-candidates" class="tab-content">
+            <h1>Rejected Candidates</h1>
+            <div class="candidate-list">
+                {% for candidate in rejected_candidates %}
+                    <div class="candidate-card">
+                        <h3>{{ candidate.candidate_email }}</h3>
+                        <p>Status: {{ candidate.status }}</p>
+                    </div>
+                {% empty %}
+                    <p>No rejected candidates found.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function showTab(tabId, element) {
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.classList.remove('active');
+        });
+        element.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    async function sendExamEmail(button, email, password) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const feedbackDiv = document.getElementById('email-feedback-selected');
+        
+        feedbackDiv.style.display = 'block';
+        feedbackDiv.style.backgroundColor = '#e3f2fd';
+        feedbackDiv.style.color = '#1976d2';
+        feedbackDiv.textContent = `Sending exam link to ${email}...`;
+
+        try {
+            const response = await fetch('{% url "send_exam_email" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ email: email, password: password })
+            });
+
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                feedbackDiv.style.backgroundColor = '#d4edda';
+                feedbackDiv.style.color = '#155724';
+                feedbackDiv.textContent = `Exam link sent to ${email} successfully!`;
+                button.innerText = 'Email Sent';
+                button.disabled = true;
+                button.style.backgroundColor = '#5cb85c';
+            } else {
+                feedbackDiv.style.backgroundColor = '#f8d7da';
+                feedbackDiv.style.color = '#721c24';
+                feedbackDiv.textContent = `Failed to send email: ${data.message}`;
+            }
+        } catch (error) {
+            feedbackDiv.style.backgroundColor = '#f8d7da';
+            feedbackDiv.style.color = '#721c24';
+            feedbackDiv.textContent = `An error occurred while sending the email.`;
+        }
+    }
+    
+    async function sendOfferEmail(button, email) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const feedbackDiv = document.getElementById('email-feedback-final');
+        
+        feedbackDiv.style.display = 'block';
+        feedbackDiv.style.backgroundColor = '#e3f2fd';
+        feedbackDiv.style.color = '#1976d2';
+        feedbackDiv.textContent = `Sending offer email to ${email}...`;
+
+        try {
+            const response = await fetch('{% url "send_offer_email" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ email: email })
+            });
+
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                feedbackDiv.style.backgroundColor = '#d4edda';
+                feedbackDiv.style.color = '#155724';
+                feedbackDiv.textContent = `Offer email sent to ${email} successfully!`;
+                
+                button.innerText = 'Offer Sent';
+                button.disabled = true;
+                button.style.backgroundColor = '#5cb85c';
+            } else {
+                feedbackDiv.style.backgroundColor = '#f8d7da';
+                feedbackDiv.style.color = '#721c24';
+                feedbackDiv.textContent = `Failed to send email: ${data.message}`;
+            }
+        } catch (error) {
+            feedbackDiv.style.backgroundColor = '#f8d7da';
+            feedbackDiv.style.color = '#721c24';
+            feedbackDiv.textContent = `An error occurred while sending the email.`;
+        }
+    }
+
+    async function sendEmailToAll() {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const feedbackDiv = document.getElementById('email-feedback-selected');
+        const candidateCards = document.querySelectorAll('#selected-candidates .candidate-card');
+        const emails = [];
+
+        candidateCards.forEach(card => {
+            const email = card.dataset.email;
+            emails.push(email);
+        });
+
+        feedbackDiv.style.display = 'block';
+        feedbackDiv.style.backgroundColor = '#e3f2fd';
+        feedbackDiv.style.color = '#1976d2';
+        feedbackDiv.textContent = `Sending exam links to all candidates...`;
+
+        try {
+            const response = await fetch('{% url "send_all_exam_emails" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ emails: emails })
+            });
+
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                feedbackDiv.style.backgroundColor = '#d4edda';
+                feedbackDiv.style.color = '#155724';
+                feedbackDiv.textContent = 'Exam links sent to all candidates successfully!';
+                
+                candidateCards.forEach(card => {
+                    const button = card.querySelector('button');
+                    button.innerText = 'Email Sent';
+                    button.disabled = true;
+                    button.style.backgroundColor = '#5cb85c';
+                });
+            } else {
+                feedbackDiv.style.backgroundColor = '#f8d7da';
+                feedbackDiv.style.color = '#721c24';
+                feedbackDiv.textContent = `Failed to send all emails: ${data.message}`;
+            }
+        } catch (error) {
+            feedbackDiv.style.backgroundColor = '#f8d7da';
+            feedbackDiv.style.color = '#721c24';
+            feedbackDiv.textContent = `An error occurred while sending the emails.`;
+        }
+    }
+    </script>
+</body>
+</html>

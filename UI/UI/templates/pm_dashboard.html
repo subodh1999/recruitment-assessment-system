@@ -1,0 +1,252 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Dashboard</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/favicon.ico' %}"/>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #ffffff;
+            color: #333;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar h2 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .sidebar a {
+            color: #555;
+            text-decoration: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: block;
+            transition: background-color 0.3s ease;
+        }
+        .sidebar a:hover {
+            background-color: #e3f2fd;
+        }
+        .sidebar a.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            overflow-y: auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+        }
+        .main-content h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .candidate-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .candidate-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: calc(33.333% - 20px);
+            box-sizing: border-box;
+            transition: transform 0.2s ease;
+        }
+        .candidate-card:hover {
+            transform: translateY(-5px);
+        }
+        .candidate-card h3 {
+            color: #3498db;
+            margin-top: 0;
+        }
+        .candidate-card p {
+            color: #7f8c8d;
+            margin: 5px 0;
+        }
+        .logout-container {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+        }
+        .logout-container form {
+            display: inline;
+        }
+        .logout-container button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .logout-container button:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>PM Dashboard</h2>
+        <a href="{% url 'pm_dashboard' %}" class="active">Candidates Code</a>
+        <div class="logout-container">
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h1>All Test Submissions</h1>
+        <div id="confirmation-message" style="display:none; padding:15px; margin-bottom:20px; background-color:#d4edda; color:#155724; border:1px solid #c3e6cb; border-radius:8px;"></div>
+        <div class="candidate-list">
+            {% for result in test_results %}
+                <div class="candidate-card" id="card-{{ result.pk }}">
+                    <h3>Candidate ID: {{ result.pk }}</h3>
+                    <p>Email: {{ result.candidate.email }}</p>
+                    <a href="{% url 'pm_candidate_results' candidate_id=result.pk %}">View Details</a>
+                    <form onsubmit="return handleConfirm(this, {{ result.pk }});" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit">Confirm</button>
+                    </form>
+                    <form onsubmit="return handleReject(this, {{ result.pk }});" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" style="background-color:#e74c3c;">Reject</button>
+                    </form>
+                </div>
+            {% empty %}
+                <p>No test results found.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function handleConfirm(form, candidateId) {
+            event.preventDefault();
+
+            const url = `{% url 'confirm_candidate' candidate_id=0 %}`.replace('0', candidateId);
+            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+            const messageBox = document.getElementById('confirmation-message');
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    messageBox.style.display = 'block';
+                    messageBox.textContent = `Candidate ${candidateId} confirmed successfully!`;
+                    
+                    const card = document.getElementById(`card-${candidateId}`);
+                    if (card) {
+                        card.style.display = 'none';
+                    }
+                } else {
+                    messageBox.style.display = 'block';
+                    messageBox.textContent = `Error: ${data.message}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageBox.style.display = 'block';
+                messageBox.textContent = 'An error occurred. Please try again.';
+            });
+
+            return false;
+        }
+
+        async function handleReject(form, candidateId) {
+            event.preventDefault();
+
+            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+            const messageBox = document.getElementById('confirmation-message');
+
+            messageBox.style.display = 'block';
+            messageBox.style.backgroundColor = '#f0ad4e'; // Warning color
+            messageBox.style.color = '#333';
+            messageBox.textContent = `Rejecting candidate ${candidateId} and sending email...`;
+
+            try {
+                // First, make the request to reject the candidate
+                const rejectUrl = `{% url 'reject_candidate' candidate_id=0 %}`.replace('0', candidateId);
+                const rejectResponse = await fetch(rejectUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({})
+                });
+                const rejectData = await rejectResponse.json();
+
+                if (rejectData.status === 'success') {
+                    // If rejection is successful, proceed to send the email
+                    const emailUrl = `{% url 'send_rejection_email' candidate_id=0 %}`.replace('0', candidateId);
+                    const emailResponse = await fetch(emailUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: JSON.stringify({})
+                    });
+                    const emailData = await emailResponse.json();
+
+                    if (emailData.status === 'success') {
+                        messageBox.style.backgroundColor = '#d9534f'; // Error color for rejection
+                        messageBox.style.color = '#fff';
+                        messageBox.textContent = `Candidate ${candidateId} rejected and email sent successfully!`;
+                    } else {
+                        messageBox.style.backgroundColor = '#f0ad4e';
+                        messageBox.style.color = '#333';
+                        messageBox.textContent = `Candidate ${candidateId} rejected, but failed to send email: ${emailData.message}`;
+                    }
+
+                    const card = document.getElementById(`card-${candidateId}`);
+                    if (card) {
+                        card.style.display = 'none';
+                    }
+                } else {
+                    messageBox.style.backgroundColor = '#f0ad4e';
+                    messageBox.style.color = '#333';
+                    messageBox.textContent = `Error rejecting candidate: ${rejectData.message}`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                messageBox.style.backgroundColor = '#f0ad4e';
+                messageBox.style.color = '#333';
+                messageBox.textContent = 'An error occurred. Please try again.';
+            }
+
+            return false;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Dashboard</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/favicon.ico' %}"/>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e8f5e9; /* Light green background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 50px 60px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            color: #2e7d32; /* Dark green for heading */
+            margin-bottom: 15px;
+            font-size: 2.5em;
+        }
+        p {
+            color: #555;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        .button-group a,
+        .button-group button {
+            display: inline-block;
+            background-color: #4caf50; /* Green button */
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.0em;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin: 0 10px;
+            border: none; /* Add this to remove default button border */
+            cursor: pointer; /* Add this for a pointer cursor on hover */
+        }
+        .button-group a:hover,
+        .button-group button:hover {
+            background-color: #388e3c;
+            transform: translateY(-3px);
+        }
+        .button-group a.secondary {
+            background-color: #e74c3c; /* Logout button color */
+        }
+        .button-group a.secondary:hover {
+            background-color: #c0392b;
+        }
+        .warning {
+            color: #e74c3c;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    <h1>Welcome, Candidate {{ user.username|capfirst }}!</h1>
+    
+    {% if warning %}
+        <p class="warning">{{ warning }}</p>
+    {% endif %}
+
+    <p>You are on your candidate dashboard. Click the button below to start your test.</p>
+    <div class="button-group">
+        <a href="{% url 'test_consent' %}">Start Test</a>
+        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="secondary">Logout</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
